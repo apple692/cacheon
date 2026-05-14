@@ -109,6 +109,22 @@ Wait until the server is up, then:
 curl -sS "http://127.0.0.1:8000/health"
 ```
 
+### Automated check (health + streaming logprobs)
+
+**GPU:** The reference image runs vLLM on CUDA. The test script uses `docker run --gpus all`, so you need a **GPU machine** (typically **several GPUs** for 72B). **`docker build` does not need a GPU.** If the server is already running elsewhere, `./test_miner_image.sh --url http://...` only needs **network** access to that host from where you run the script (that host must still be GPU-backed for vLLM).
+
+From `miner/docker/`, after the image is built (or with a container already on port 8000):
+
+```bash
+# Full flow: start container, wait for /health, POST chat/completions like the validator, then remove.
+./test_miner_image.sh --image docker.io/YOURUSER/cacheon-miner:v1 --model-dir /data/models/Qwen2.5-72B-Instruct
+
+# Only API checks (you started the container yourself):
+./test_miner_image.sh --url http://127.0.0.1:8000
+```
+
+Options: `--port 18000` (host port when using `--image`), `--wait 600` (health timeout seconds), `--keep` (leave the container running after success).
+
 ## Step 4 — Log in to the registry and push
 
 ```bash
